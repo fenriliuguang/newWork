@@ -78,7 +78,7 @@
                 <div id="my">
                     <div id="avatar">
                         <el-avatar v-if="this.$store.state.face == ''" :size="70" :fit="'cover'" style="font-size:40px" icon="el-icon-user-solid"></el-avatar>
-                        <el-avatar v-else :src="this.$store.state.face" :size="70" :fit="'cover'"></el-avatar>
+                        <el-avatar v-else :src="'http://118.126.104.223'+this.$store.state.face" :size="70" :fit="'cover'"></el-avatar>
                     </div>
                     <div id="name">{{this.$store.state.name}}</div>
                     <div id="intro">{{this.$store.state.intro}}</div>

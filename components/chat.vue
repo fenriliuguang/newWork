@@ -4,7 +4,7 @@
         <el-header class="pad" height="70px" id="header">
           <div id="c-avatar">
             <div style="width:40px;height:40px;float:left">
-              <el-avatar :size="40" :src="this.$store.state.roomIn.face"></el-avatar>
+              <el-avatar :size="40" :src="'http://118.126.104.223'+this.$store.state.roomIn.face"></el-avatar>
             </div>
             <div id="int">
               <div style="margin:2px 0;font-size:13px">{{this.$store.state.roomIn.name}}</div>
@@ -42,9 +42,9 @@
               </div>
             </div>
             <div id="main-chat">
-              <div id="zs" style="overflow:hidden" v-for="(site,index) in messages"
+              <div class="zs" style="overflow:hidden" v-for="(site,index) in messages"
                 :key="index">
-                <el-avatar :class="{'me':site.isMe,'him':!site.isMe}" :src="site.face"></el-avatar>
+                <el-avatar :class="{'me':site.isMe,'him':!site.isMe}" :src="'http://118.126.104.223/static/upload/'+ site.face +'.jpg'"></el-avatar>
                 <div :class="{'myChat':site.isMe,'hisChat':!site.isMe}">{{site.message}}</div>
               </div>
             </div>
@@ -71,7 +71,7 @@
         </div>
         <div id="aside-a">
           <div id="aside-a-a">
-            <el-avatar id="avaI" :size="70" :src="this.$store.state.roomIn.face"></el-avatar>
+            <el-avatar id="avaI" :size="70" :src="'http://118.126.104.223'+this.$store.state.roomIn.face"></el-avatar>
           </div>
           <div id="g-name">{{this.$store.state.roomIn.name}}</div>
           <div id="g-intro">{{this.$store.state.roomIn.info}}</div>
@@ -145,28 +145,9 @@
 export default {
   data () {
     return {
-      messages:[{
-        'message': '对方发言测试',
-        'isMe':false,
-        'name': '发送信号者',
-        'face': '',
-        'time': {
-          'day': 20,
-          'hour': 22,
-          'minute': 23
-        }
-      },
-      {
-        'message': '我方发言测试',
-        'isMe': true,
-        'name': this.$store.state.name,
-        'face': '',
-        'time': {
-          'day': 20,
-          'hour': 22,
-          'minute': 23
-        }
-      },
+      haveHistory: true,
+      messages:[
+      //   npm
       ],
       page:1,
       protocol:location.protocol,
@@ -190,12 +171,13 @@ export default {
     })
     let chat = document.getElementById("main")
     let mc = document.getElementById("main-chat")
+    console.log(mc)
     mc.style.margin = '1000px 0 0 0'
     console.log(chat.scrollTop + '///' + chat.scrollHeight)
     chat.scrollTop = chat.scrollHeight
     console.log(chat.scrollTop + '///' + chat.scrollHeight)
     chat.onscroll = () => {
-      if(chat.scrollTop === 0){
+      if(chat.scrollTop === 0 && this.haveHistory){
         console.log('loading...')
         this.$axios
         .get(
@@ -209,7 +191,48 @@ export default {
           }
         )
         .then((res)=>{
-
+          if( res.data.status != 4002){
+            console.log(res.data)
+            let heightMax = 0
+            let len = res.data.history.length
+            for(var i = 0 ; i < len ; i++){
+              this.messages.unshift({
+                'message' : res.data.history[i].content,
+                'isMe' : res.data.history[i].sender == this.$store.state.name,
+                'face' : res.data.history[i].face,
+                'time' : {
+                  'day': res.data.history[i].addtime.day,
+                  'hour': res.data.history[i].addtime.hour,
+                  'minute' : res.data.history[i].addtime.minute
+                }
+              })
+              setTimeout(() => {
+                let mc = document.getElementById("main-chat")
+                let dc = document.getElementsByClassName("zs")
+                let height = dc[0].offsetHeight
+                heightMax += height
+                let margin = parseInt(mc.style.marginTop)
+                if(margin > height){
+                  margin -= height
+                }else{
+                  margin = 0
+                }
+                mc.style.marginTop = margin + 'px'
+              },1)
+            }
+            let mChat = document.getElementById("main")
+            setTimeout(()=>{
+              mChat.scrollTop = heightMax
+              this.page++
+            },200)
+          }else{
+            this.$message({
+              message : 'No more history',
+              duration : 4000
+            })
+            let load = document.getElementById('loading')
+            load.style.display = 'none'
+          }
         })
       }
     }
@@ -263,6 +286,8 @@ export default {
         if(res.data.status === 2000){
           this.$ref.cUpload.submit()
           alert("Change successfully")
+          this.$store.commit('putRoom',res.data.room.id)
+          this.$store.commit('putIn',res.data.room)
         }
       })
     },
@@ -331,15 +356,28 @@ export default {
       console.log(data)
     },
     response (data) {
+      console.log(data)
       let mChat = document.getElementById("main")
       this.messages.push(
         {
           'message':data.content,
           'name':data.sender,
-          'isMe':data.sender ==this.$store.state.name
+          'isMe':data.sender ==this.$store.state.name,
+          'face':data.face
         }
       )
       setTimeout(() =>{
+        let mc = document.getElementById("main-chat")
+        let dc = document.getElementsByClassName("zs")
+        console.log(dc)
+        console.log(mc.style.marginTop)
+        let height = dc[dc.length - 1].offsetHeight
+        let margin = parseInt(mc.style.marginTop)
+        console.log(margin)
+        if(margin > height + 20){
+          margin -= height
+        }
+        mc.style.marginTop = margin + 'px'
         mChat.scrollTop = mChat.scrollHeight
       },500)
     }
@@ -348,7 +386,7 @@ export default {
 </script>
 
 <style>
-#zs{
+.zs{
   position: relative;
 }
 .him{

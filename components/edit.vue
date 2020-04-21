@@ -65,9 +65,12 @@ export default {
                     data
                 )
                 .then((res) => {
-                    if(res.data.status === 2020){
+                    if(res.data.status === 2000){
+                        console.log(this.$refs.upload)
                         this.idP = res.data.id
                         this.$refs.upload.submit()
+                        this.$store.commit('putRoom',res.data.room.id)
+                        this.$store.commit('putIn',res.data.room)
                     }
                 })
         }

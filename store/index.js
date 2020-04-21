@@ -48,6 +48,7 @@ const store = new Vuex.Store({
                     if (res.data.status === 2000) {
                         state.isLogin = true
                         state.face = res.data.user.face
+                        console.log(state.face)
                         let user = eval('(' + res.data.user.info + ')')
                         state.phone = user.phone
                         state.em = user.em
