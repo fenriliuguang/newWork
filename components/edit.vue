@@ -15,6 +15,8 @@
                     class="up"
                     :action="protocol + '//' + '118.126.104.223' + ':80/admin/upload_room'"
                     drag
+                    :limit="1"
+                    :data="data"
                     ref="upload"
                     :auto-upload="false">
                     <div class="upload">
@@ -47,8 +49,14 @@ export default {
             NameP : '',
             idP: 0,
             toP: '',
-            deP: ''
+            deP: '',
+            data: {
+                room_id: 0,
+            }
         }
+    },
+    mounted () {
+        console.log(this.$refs.upload.submit)
     },
     methods : {
         put () {
@@ -57,7 +65,8 @@ export default {
                 roomname : this.NameP,
                 creator : this.$store.state.name,
                 token : this.$store.state.token,
-                userid : this.$store.state.id
+                userid : this.$store.state.id,
+                info : 'Topic: ' + this.toP + 'Description: ' + this.deP
             }
             this.$axios
                 .post(
@@ -66,8 +75,9 @@ export default {
                 )
                 .then((res) => {
                     if(res.data.status === 2000){
-                        console.log(this.$refs.upload)
-                        this.idP = res.data.id
+                        alert('success')
+                        this.data.room_id = res.data.room.id
+                        this.idP = res.data.room.id
                         this.$refs.upload.submit()
                         this.$store.commit('putRoom',res.data.room.id)
                         this.$store.commit('putIn',res.data.room)

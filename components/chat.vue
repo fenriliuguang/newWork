@@ -80,8 +80,10 @@
                 <div class="c-kk">Photo</div>
                 <el-upload
                     class="c-up"
-                    :action="protocol + '//' + document.domain + ':80/admin/upload_room'"
+                    :action="'http://118.126.104.223' + ':81/admin/upload_room'"
                     drag
+                    :limit="1"
+                    :data="data"
                     ref="cUpload"
                     :auto-upload="false">
                     <div class="c-upload">
@@ -111,9 +113,9 @@
         </div>
         <div id="s-m">
           <div id="s-m-a">
-            <el-avatar id="s-a" :src="this.$store.state.roomIn.face"></el-avatar>
+            <el-avatar id="s-a" :src="'http://118.126.104.223'+this.$store.state.roomIn.face"></el-avatar>
             <div id="s-n-n">
-              <div id="s-n">s{{this.$store.state.roomIn.name}}</div>
+              <div id="s-n">{{this.$store.state.roomIn.name}}</div>
               <div id="s-s"><span id="link">{{link}}</span>&nbsp;
                 <el-tooltip class="item" effect="light" content="Click to copy the link" placement="bottom-start">
                   <em @click="copy" class="el-icon-link copy"></em>
@@ -145,6 +147,9 @@
 export default {
   data () {
     return {
+     data: {
+        room_id: this.$store.state.room,
+      },
       haveHistory: true,
       messages:[
       //   npm
@@ -243,6 +248,8 @@ export default {
     },
     handleCommand (c) {
       if(c === 'open'){
+        console.log(this.$store.state.roomIn.creator)
+        console.log(this.$store.state.name)
         if(this.$store.state.roomIn.creator == this.$store.state.name){
           this.asideS = false
           this.aside = true
@@ -251,16 +258,18 @@ export default {
         }
       }
       if(c === 'delete'){
+        console.log(this.$store.state.roomIn)
+        console.log(this.$store.state.name)
         if(this.$store.state.roomIn.creator == this.$store.state.name){
           this.$axios
           .post(
-            location.protocol + '//' + document.domain + ':80/admin/room_del',
+            location.protocol + '//' + '118.126.104.223' + ':80/admin/room_del',
             {
               room_id : this.$store.state.room
             }
           )
           .then((res) => {
-            if(res.data.status == 200){
+            if(res.data.status == 2000){
               alert('Deleted successfully')
             }else{
               alert('failed')
@@ -272,19 +281,22 @@ export default {
       }
     },
     c_put () {
+      console.log(this.$refs.cUpload.uploadFiles.length)
       this.$axios
       .post(
-        location.protocol + '//' + document.domain + ':80/admin/edit_room',
+        location.protocol + '//' + '118.126.104.223' + ':80/admin/edit_room',
         {
           token: this.$store.state.token,
-          id: this.idP,
+          id: this.$store.state.room,
           name: this.NameP,
-          info: this.toP + this.deP
+          info: 'Topic: ' + this.toP + 'Description: ' + this.deP
         }
       )
       .then((res) => {
         if(res.data.status === 2000){
-          this.$ref.cUpload.submit()
+          if(this.$refs.cUpload.uploadFiles.length != 0){
+            this.$refs.cUpload.submit()
+          }
           alert("Change successfully")
           this.$store.commit('putRoom',res.data.room.id)
           this.$store.commit('putIn',res.data.room)
@@ -503,11 +515,11 @@ export default {
   float: left;
 }
 #s-n-n{
-  margin: 0 20px;
+  margin-left: 20px;
   float: left;
 }
 #s-m-a{
-  padding: 60px 40px;
+  padding: 60px 25px;
 }
 #s-m{
   height: 300px;

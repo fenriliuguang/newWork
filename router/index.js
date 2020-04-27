@@ -5,7 +5,7 @@ import axios from 'axios'
 
 Vue.use(Router)
 
-let room = /^\/room\/\d{1-6}$/
+let room = /^\/room\/\d{1,6}$/
 let flag = false
 
 //检查该浏览器是否有登录状态
@@ -35,25 +35,29 @@ if (flag) {
 }
 
 //查看房间链接是否合法
+
 let roomId = location.pathname
-console.log(roomId)
+console.log('id is' + roomId)
+console.log(room.test(roomId))
+console.log((/^(\/room\/)(\d{1,6})$/.exec(roomId)))
 if (room.test(roomId)) {
-    let id = Number(/d{1-6}/.exec(roomId))
+    console.log(room)
+    let id = Number(/^(\/room\/)(\d{1,6})$/.exec(roomId)[2])
     store.commit('putRoom', id)
-    if (store.state.isLogin) {
-        axios
-            .get(
-                location.protocol + '//' + '118.126.104.223' + ':80/admin/room_get', {
-                    params: {
-                        roomid: id,
-                        token: store.state.token
-                    }
-                }
-            )
-            .then((res) => {
-                store.commit('putIn', res.data)
-            })
-    }
+        // if (store.state.isLogin === true) {
+        //     axios
+        //         .get(
+        //             location.protocol + '//' + '118.126.104.223' + ':80/admin/room_get', {
+        //                 params: {
+        //                     roomid: id,
+        //                     token: store.state.token
+        //                 }
+        //             }
+        //         )
+        //         .then((res) => {
+        //             store.commit('putIn', res.data)
+        //         })
+        // }
 } else {
     //alert('房间链接错误')
 }
@@ -99,7 +103,7 @@ router.beforeEach((to, from, next) => {
                     }
                 )
                 .then((res) => {
-                    store.commit('putIn', res.data)
+                    store.commit('putIn', res.data.room)
                 })
         }
         next()
@@ -113,6 +117,4 @@ router.beforeEach((to, from, next) => {
     }
 })
 
-
-console.log(router.beforeEach)
 export default router
