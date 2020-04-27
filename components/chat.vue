@@ -8,7 +8,7 @@
             </div>
             <div id="int">
               <div style="margin:2px 0;font-size:13px">{{this.$store.state.roomIn.name}}</div>
-              <div style="color:#BEC2C8;">{{this.$store.state.roomIn.info}}</div>
+              <div style="color:#BEC2C8;">{{room_num}}&nbsp;members online&nbsp;·&nbsp;{{this.$store.state.roomIn.info}}</div>
             </div>
             <div id="c-icons">
               <em @click="search_show" class="el-icon-search" :class="{ onc : search, c_ic : !search}"></em>
@@ -44,8 +44,14 @@
             <div id="main-chat">
               <div class="zs" style="overflow:hidden" v-for="(site,index) in messages"
                 :key="index">
-                <el-avatar :class="{'me':site.isMe,'him':!site.isMe}" :src="'http://118.126.104.223/static/upload/'+ site.face +'.jpg'"></el-avatar>
-                <div :class="{'myChat':site.isMe,'hisChat':!site.isMe}">{{site.message}}</div>
+                <div>
+                  <el-tag v-if="site.ismessage" size="mini"><span style="font-weight: 700;">{{site.name}}</span>&nbsp;{{site.message}}</el-tag>
+                </div>
+                <el-avatar v-if="!site.ismessage" :class="{'me':site.isMe,'him':!site.isMe}" :src="'http://118.126.104.223/static/upload/'+ site.face +'.jpg'"></el-avatar>
+                <div v-if="!site.ismessage"  :class="{'myChat':site.isMe,'hisChat':!site.isMe}">
+                  <div v-if="!site.isMe" style="font-weight: 700;">{{site.name}} :</div>
+                  <span :class="{'our':!site.isMe}">{{site.message}}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -53,6 +59,7 @@
         <el-footer class="pad" height="70px" id="footer">
           <div id="f-i">
             <el-input
+              @keyup.enter.native="send"
               placeholder="Type your message..."
               v-model="message"></el-input>
           </div>
@@ -156,7 +163,7 @@ export default {
       ],
       page:1,
       protocol:location.protocol,
-      room_num: '0',  //当前在线人数，由于设计稿上没体现哪里显示就不具体设置了
+      room_num: '0',  //当前在线人数
       message: '',
       link: 'http://118.126.104.223:8080/room/'+ this.$store.state.room,
       input : '',
@@ -170,9 +177,20 @@ export default {
     }
   },
   mounted () {
-    this.$socket.emit('connect',{
+    this.$socket.emit('connection',{
       username: this.$store.state.name,
       roomid: this.$store.state.room
+    })
+    this.$socket.emit('new_user',{
+      username: this.$store.state.name,
+      num:1,
+      roomid: this.$store.state.room
+    })
+    window.addEventListener('beforeunload', e => {
+      this.$socket.emit('disconnection',{
+        username: this.$store.state.name,
+        roomid: this.$store.state.room
+      })
     })
     let chat = document.getElementById("main")
     let mc = document.getElementById("main-chat")
@@ -204,6 +222,8 @@ export default {
               this.messages.unshift({
                 'message' : res.data.history[i].content,
                 'isMe' : res.data.history[i].sender == this.$store.state.name,
+                'ismessage' : false,
+                'name' : res.data.history[i].sender,
                 'face' : res.data.history[i].face,
                 'time' : {
                   'day': res.data.history[i].addtime.day,
@@ -335,24 +355,16 @@ export default {
       window.open(Wshare)
     },
     send (){
-      this.$socket.emit('my_event',{
-        username:this.$store.state.name,
-        userid:this.$store.state.id,
-        roomid:this.$store.state.room,
-        content:this.message
-      })
-      let mChat = document.getElementById("main")
-      // this.messages.push(
-      //   {
-      //     'message':this.message,
-      //     'name':this.$store.state.name,
-      //     'isMe':true
-      //   }
-      // )
-      // setTimeout(() =>{
-      //   mChat.scrollTop = mChat.scrollHeight
-      // },500)
-      this.message = ''
+      if(this.message != ''){
+        this.$socket.emit('my_event',{
+          username:this.$store.state.name,
+          userid:this.$store.state.id,
+          roomid:this.$store.state.room,
+          content:this.message
+        })
+        let mChat = document.getElementById("main")
+        this.message = ''
+      }
     }
   },
   sockets: {
@@ -360,44 +372,102 @@ export default {
       console.log('ok')
     },
     new_user (data) {
-      this.room_num = data.num
+      if( data.roomid == this.$store.state.room){
+        this.room_num = data.num
+        this.messages.push({
+                  'message' : 'joined the group chat',
+                  'isMe' : false,
+                  'name' : data.username,
+                  'ismessage' : true,
+                  'face' : '',
+                  'time' : {
+                    'day': '',
+                    'hour': '',
+                    'minute' : ''
+                  }
+                })
+        setTimeout(() => {
+                  let mc = document.getElementById("main-chat")
+                  let dc = document.getElementsByClassName("zs")
+                  let height = dc[0].offsetHeight
+                  let margin = parseInt(mc.style.marginTop)
+                  if(margin > height){
+                    margin -= height
+                  }else{
+                    margin = 0
+                  }
+                  mc.style.marginTop = margin + 'px'
+                },1)
+      }
       console.log(data)
     },
     leave_user (data) {
-      this.room_num = data.num
+      if( data.roomid == this.$store.state.room){
+        this.room_num = data.num
+        this.messages.push({
+                  'message' : 'dropped out of the group chat',
+                  'isMe' : false,
+                  'name' : data.username,
+                  'ismessage' : true,
+                  'face' : '',
+                  'time' : {
+                    'day': '',
+                    'hour': '',
+                    'minute' : ''
+                  }
+                })
+        setTimeout(() => {
+                  let mc = document.getElementById("main-chat")
+                  let dc = document.getElementsByClassName("zs")
+                  let height = dc[0].offsetHeight
+                  let margin = parseInt(mc.style.marginTop)
+                  if(margin > height){
+                    margin -= height
+                  }else{
+                    margin = 0
+                  }
+                  mc.style.marginTop = margin + 'px'
+                },1)
+      }
       console.log(data)
     },
     response (data) {
       console.log(data)
-      let mChat = document.getElementById("main")
-      this.messages.push(
-        {
-          'message':data.content,
-          'name':data.sender,
-          'isMe':data.sender ==this.$store.state.name,
-          'face':data.face
-        }
-      )
-      setTimeout(() =>{
-        let mc = document.getElementById("main-chat")
-        let dc = document.getElementsByClassName("zs")
-        console.log(dc)
-        console.log(mc.style.marginTop)
-        let height = dc[dc.length - 1].offsetHeight
-        let margin = parseInt(mc.style.marginTop)
-        console.log(margin)
-        if(margin > height + 20){
-          margin -= height
-        }
-        mc.style.marginTop = margin + 'px'
-        mChat.scrollTop = mChat.scrollHeight
-      },500)
+      if( data.roomid == this.$store.state.room){
+        let mChat = document.getElementById("main")
+        this.messages.push(
+          {
+            'ismessage' : false,
+            'message':data.content,
+            'name':data.sender,
+            'isMe':data.sender ==this.$store.state.name,
+            'face':data.face
+          }
+        )
+        setTimeout(() =>{
+          let mc = document.getElementById("main-chat")
+          let dc = document.getElementsByClassName("zs")
+          console.log(dc)
+          console.log(mc.style.marginTop)
+          let height = dc[dc.length - 1].offsetHeight
+          let margin = parseInt(mc.style.marginTop)
+          console.log(margin)
+          if(margin > height + 20){
+            margin -= height
+          }
+          mc.style.marginTop = margin + 'px'
+          mChat.scrollTop = mChat.scrollHeight
+        },500)
+      }
     }
   }
 }
 </script>
 
 <style>
+.our{
+  color: rgb(159, 196, 216);
+}
 .zs{
   position: relative;
 }
@@ -418,8 +488,8 @@ export default {
   line-height: 23px;
   padding: 20px;
   font-size: 14px;
-  color: rgb(255, 255, 255);
-  background-color: rgb(138, 138, 248);
+  color: rgb(48, 48, 48);
+  background-color: rgb(248, 248, 255);
   max-width: 500px;
   float: left;
 }
