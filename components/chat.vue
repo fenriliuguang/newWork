@@ -127,6 +127,7 @@
                 <el-tooltip class="item" effect="light" content="Click to copy the link" placement="bottom-start">
                   <em @click="copy" class="el-icon-link copy"></em>
                 </el-tooltip>
+               <p id="hideCopy">{{link}}</p>
               </div>
             </div>
           </div>
@@ -179,11 +180,6 @@ export default {
   mounted () {
     this.$socket.emit('connection',{
       username: this.$store.state.name,
-      roomid: this.$store.state.room
-    })
-    this.$socket.emit('new_user',{
-      username: this.$store.state.name,
-      num:1,
       roomid: this.$store.state.room
     })
     window.addEventListener('beforeunload', e => {
@@ -281,20 +277,23 @@ export default {
         console.log(this.$store.state.roomIn)
         console.log(this.$store.state.name)
         if(this.$store.state.roomIn.creator == this.$store.state.name){
-          this.$axios
-          .post(
-            location.protocol + '//' + '118.126.104.223' + ':80/admin/room_del',
-            {
-              room_id : this.$store.state.room
-            }
-          )
-          .then((res) => {
-            if(res.data.status == 2000){
-              alert('Deleted successfully')
-            }else{
-              alert('failed')
-            }
-          })
+          var r=confirm("Are you sure to delete?");
+          if (r==true){
+            this.$axios
+            .post(
+              location.protocol + '//' + '118.126.104.223' + ':80/admin/room_del',
+              {
+                room_id : this.$store.state.room
+              }
+            )
+            .then((res) => {
+              if(res.data.status == 2000){
+                alert('Deleted successfully')
+              }else{
+                alert('failed')
+              }
+            })
+          }
         }else{
           alert("You do not have administrator privileges")
         }
@@ -334,7 +333,7 @@ export default {
       this.aside = false
     },
     copy () {
-      //不会操作剪贴板
+     //不会触发点击复制事件
     },
     QQ () {
       let Qshare = "http://connect.qq.com/widget/shareqq/index.html?" +
@@ -460,11 +459,21 @@ export default {
         },500)
       }
     }
+  },
+  beforeRouteLeave (to, from, next) {
+    this.$socket.emit('disconnection',{
+        username: this.$store.state.name,
+        roomid: this.$store.state.room
+      })
+    next()
   }
 }
 </script>
 
 <style>
+#hideCopy{
+  display: none;
+}
 .our{
   color: rgb(159, 196, 216);
 }

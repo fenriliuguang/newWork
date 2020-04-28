@@ -130,15 +130,15 @@
                                 </div>
                             </el-upload>
                             <div class="c">Name</div>
-                            <el-input id="i" v-model="name"></el-input>
+                            <el-input class="i" v-model="name"></el-input>
                             <div class="c">Phone</div>
-                            <el-input id="i" v-model="phone"></el-input>
+                            <el-input class="i" v-model="phone"></el-input>
                             <div class="c">Email</div>
-                            <el-input id="i" v-model="em"></el-input>
+                            <el-input class="i" v-model="em"></el-input>
                             <div class="c">Country</div>
-                            <el-input id="i" v-model="cou"></el-input>
+                            <el-input class="i" v-model="cou"></el-input>
                             <div class="c">Introduction</div>
-                            <el-input id="i" v-model="intro"></el-input>
+                            <el-input class="i" v-model="intro"></el-input>
                             <div style="margin:10px 55px;">
                                 <el-button @click="upload" type="primary">
                                     <div style="margin:0 40px;font-size:13px">Save Preferences</div>

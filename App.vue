@@ -27,9 +27,6 @@ export default {
     return {
       chatName: "/chat"
     }
-  },
-  methods: {
-    
   }
 }
 </script>
