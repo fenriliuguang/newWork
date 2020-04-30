@@ -1,21 +1,59 @@
-# test2
+#四轮前端项目
 
-> A Vue.js project
+>Vue单页匿名聊天室应用 - test2
 
-## Build Setup
+######环境依赖
+node v12.15.0
 
-``` bash
-# install dependencies
-npm install
+######使用
+1. 起一个新的vue项目
+`vue init webpack test2`
 
-# serve with hot reload at localhost:8080
-npm run dev
+2. 替换test2中相同目录
 
-# build for production with minification
-npm run build
+3. 运行/打包
+`npm run dev`
+`npm run build`
 
-# build for production and view the bundle analyzer report
-npm run build --report
+######目录结构
+```
+│  .babelrc
+│  .editorconfig
+│  .gitignore
+│  .postcssrc.js
+│  dist.zip
+│  index.html
+│  package-lock.json
+│  package.json
+│  README.md
+│
+├─build
+│
+├─config
+|
+├─dist
+|
+├─src
+│  │  App.vue
+│  │  main.js
+│  │
+│  ├─assets                //图片文件
+│  |
+│  ├─components           
+│  │      chat.vue         //聊天页
+│  │      edit.vue         //新建房间
+│  │      home.vue         //个人主页&登录注册页
+│  │
+│  ├─router
+│  │      index.js         //vue路由文件
+│  │
+│  └─store
+│          index.js        //vuex文件
+│
+└─static
+        .gitkeep
 ```
 
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+######v2.4.30 版本内容更新
+1. 上滑加载
+2. 实时反馈群聊人员在线情况
