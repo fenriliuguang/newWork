@@ -11,13 +11,13 @@
 使用
 ------------------
 1. 起一个新的vue项目
-`vue init webpack test2`
+>`vue init webpack test2`
 
 2. 替换test2中相同目录
 
 3. 运行/打包
-`npm run dev`
-`npm run build`
+>`npm run dev`
+>`npm run build`
 
 目录结构
 ------------------
